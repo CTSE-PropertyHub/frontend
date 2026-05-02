@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import StatusBadge from '@/components/StatusBadge'
+import PropertyTitle from '@/components/PropertyTitle'
+import UserName from '@/components/UserName'
 import type { TenancyStatus } from '@/types/tenancy'
 
-const STATUS_OPTIONS: TenancyStatus[] = ['PENDING', 'ACTIVE', 'TERMINATED', 'EXPIRED']
+const ADMIN_STATUS_OPTIONS: TenancyStatus[] = ['PENDING', 'ACTIVE', 'REJECTED', 'COMPLETED', 'TERMINATED', 'EXPIRED']
 
 export default function TenancyDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -21,15 +23,15 @@ export default function TenancyDetailPage() {
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>
   if (isError || !tenancy) return <p className="text-destructive">Tenancy not found.</p>
 
-  const canChangeStatus =
-    user?.role === 'Admin' || (user?.role === 'Landlord' && user.id === tenancy.landlordId)
-  const canDelete = user?.role === 'Admin'
+  const isLandlordOwner = user?.role === 'Landlord' && user.id === tenancy.landlordId
+  const isTenantOwner   = user?.role === 'Tenant'   && user.id === tenancy.tenantId
+  const isAdmin         = user?.role === 'Admin'
+  const isPending       = tenancy.status === 'PENDING'
+  const isActive        = tenancy.status === 'ACTIVE'
 
   function handleDelete() {
     if (!confirm('Delete this tenancy?')) return
-    deleteTenancy.mutate(tenancy!.id, {
-      onSuccess: () => navigate('/tenancies'),
-    })
+    deleteTenancy.mutate(tenancy!.id, { onSuccess: () => navigate('/tenancies') })
   }
 
   return (
@@ -44,13 +46,17 @@ export default function TenancyDetailPage() {
           <CardTitle className="text-base">Details</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-muted-foreground">Property ID</p>
-            <p className="font-mono text-xs break-all">{tenancy.propertyId}</p>
+          <div className="col-span-2">
+            <p className="text-muted-foreground">Property</p>
+            <p className="font-medium"><PropertyTitle id={tenancy.propertyId} /></p>
           </div>
           <div>
-            <p className="text-muted-foreground">Monthly rent</p>
+            <p className="text-muted-foreground">Bid / month</p>
             <p className="font-medium">${tenancy.monthlyRent.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Status</p>
+            <StatusBadge status={tenancy.status} />
           </div>
           <div>
             <p className="text-muted-foreground">Start date</p>
@@ -61,50 +67,94 @@ export default function TenancyDetailPage() {
             <p className="font-medium">{tenancy.endDate ? new Date(tenancy.endDate).toLocaleDateString() : 'Ongoing'}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Landlord ID</p>
-            <p className="font-mono text-xs break-all">{tenancy.landlordId}</p>
+            <p className="text-muted-foreground">Landlord</p>
+            <p className="font-medium"><UserName id={tenancy.landlordId} /></p>
           </div>
           <div>
-            <p className="text-muted-foreground">Tenant ID</p>
-            <p className="font-mono text-xs break-all">{tenancy.tenantId}</p>
+            <p className="text-muted-foreground">Tenant</p>
+            <p className="font-medium"><UserName id={tenancy.tenantId} /></p>
           </div>
         </CardContent>
       </Card>
 
-      {(canChangeStatus || canDelete) && (
+      {/* Landlord: approve / reject while PENDING */}
+      {isLandlordOwner && isPending && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-base">Respond to bid</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Approving this bid will automatically reject all other pending bids for this property.
+            </p>
+            <div className="flex gap-3">
+              <Button onClick={() => updateStatus.mutate({ id: tenancy.id, status: 'ACTIVE' })} disabled={updateStatus.isPending}>
+                Approve
+              </Button>
+              <Button variant="destructive" onClick={() => updateStatus.mutate({ id: tenancy.id, status: 'REJECTED' })} disabled={updateStatus.isPending}>
+                Reject
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isLandlordOwner && !isPending && (
+        <p className="text-sm text-muted-foreground mb-4">
+          This bid has been <strong>{tenancy.status.toLowerCase()}</strong>.
+        </p>
+      )}
+
+      {/* Tenant: accept the deal or walk away — only after inspection is done (status ACTIVE) */}
+      {isTenantOwner && isActive && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-base">Your decision</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Your bid has been approved. Once the inspection report is ready, return here to accept or walk away from the deal.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => updateStatus.mutate({ id: tenancy.id, status: 'COMPLETED' })}
+                disabled={updateStatus.isPending}
+              >
+                Accept deal
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => updateStatus.mutate({ id: tenancy.id, status: 'TERMINATED' })}
+                disabled={updateStatus.isPending}
+              >
+                Walk away
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Admin: full control */}
+      {isAdmin && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Manage</CardTitle>
+            <CardTitle className="text-base">Admin controls</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {canChangeStatus && (
-              <div className="flex items-center gap-3">
-                <Select
-                  value={tenancy.status}
-                  onValueChange={(v) => updateStatus.mutate({ id: tenancy.id, status: v })}
-                >
-                  <SelectTrigger className="w-52">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map(s => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <span className="text-sm text-muted-foreground">Change status</span>
-              </div>
-            )}
-            {canDelete && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={deleteTenancy.isPending}
-              >
-                Delete tenancy
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              <Select value={tenancy.status} onValueChange={(v) => updateStatus.mutate({ id: tenancy.id, status: v })}>
+                <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ADMIN_STATUS_OPTIONS.map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">Change status</span>
+            </div>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleteTenancy.isPending}>
+              Delete tenancy
+            </Button>
           </CardContent>
         </Card>
       )}

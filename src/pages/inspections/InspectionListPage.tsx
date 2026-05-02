@@ -4,6 +4,8 @@ import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatusBadge from '@/components/StatusBadge'
+import PropertyTitle from '@/components/PropertyTitle'
+import UserName from '@/components/UserName'
 
 export default function InspectionListPage() {
   const { user } = useAuth()
@@ -16,7 +18,7 @@ export default function InspectionListPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Inspections</h1>
-        {(user?.role === 'Landlord' || user?.role === 'Admin') && (
+        {(user?.role === 'Landlord' || user?.role === 'Admin' || user?.role === 'Tenant') && (
           <Button asChild>
             <Link to="/inspections/new">+ New Inspection</Link>
           </Button>
@@ -31,8 +33,8 @@ export default function InspectionListPage() {
             <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Property: <span className="text-foreground">{i.propertyId}</span>
+                  <CardTitle className="text-base font-medium">
+                    <PropertyTitle id={i.propertyId} />
                   </CardTitle>
                   <StatusBadge status={i.status} />
                 </div>
@@ -43,8 +45,8 @@ export default function InspectionListPage() {
                   <p className="font-medium">{new Date(i.scheduledAt).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Inspector ID</p>
-                  <p className="font-mono text-xs truncate">{i.inspectorId}</p>
+                  <p className="text-muted-foreground">Inspector</p>
+                  <p className="font-medium"><UserName id={i.inspectorId} /></p>
                 </div>
               </CardContent>
             </Card>

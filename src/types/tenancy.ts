@@ -1,4 +1,4 @@
-export type TenancyStatus = 'PENDING' | 'ACTIVE' | 'TERMINATED' | 'EXPIRED'
+export type TenancyStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'COMPLETED' | 'TERMINATED' | 'EXPIRED'
 
 export interface Tenancy {
   id: string
@@ -13,8 +13,7 @@ export interface Tenancy {
 
 export interface CreateTenancyRequest {
   propertyId: string
-  tenantId: string
+  monthlyRent: number
   startDate: string
   endDate?: string
-  monthlyRent: number
 }

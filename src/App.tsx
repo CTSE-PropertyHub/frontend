@@ -74,7 +74,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'tenancies/new',
-        element: <ProtectedRoute roles={['Landlord']}><TenancyFormPage /></ProtectedRoute>,
+        element: <ProtectedRoute roles={['Tenant']}><TenancyFormPage /></ProtectedRoute>,
       },
       {
         path: 'tenancies/:id',
@@ -82,15 +82,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'inspections',
-        element: <ProtectedRoute roles={['Landlord', 'Inspector', 'Admin']}><InspectionListPage /></ProtectedRoute>,
+        element: <ProtectedRoute roles={['Landlord', 'Inspector', 'Admin', 'Tenant']}><InspectionListPage /></ProtectedRoute>,
       },
       {
         path: 'inspections/new',
-        element: <ProtectedRoute roles={['Landlord', 'Admin']}><InspectionFormPage /></ProtectedRoute>,
+        element: <ProtectedRoute roles={['Landlord', 'Admin', 'Tenant']}><InspectionFormPage /></ProtectedRoute>,
       },
       {
         path: 'inspections/:id',
-        element: <ProtectedRoute roles={['Landlord', 'Inspector', 'Admin']}><InspectionDetailPage /></ProtectedRoute>,
+        element: <ProtectedRoute roles={['Landlord', 'Inspector', 'Admin', 'Tenant']}><InspectionDetailPage /></ProtectedRoute>,
       },
     ],
   },

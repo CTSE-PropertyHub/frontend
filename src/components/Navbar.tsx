@@ -34,7 +34,7 @@ export default function Navbar() {
                 Tenancies
               </Link>
             )}
-            {(user.role === 'Landlord' || user.role === 'Inspector' || user.role === 'Admin') && (
+            {(user.role === 'Landlord' || user.role === 'Inspector' || user.role === 'Admin' || user.role === 'Tenant') && (
               <Link to="/inspections" className="text-muted-foreground hover:text-foreground transition-colors">
                 Inspections
               </Link>
