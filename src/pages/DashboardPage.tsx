@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useProperties, useMyProperties } from '@/hooks/useProperties'
 import { useTenancies } from '@/hooks/useTenancies'
 import { useInspections } from '@/hooks/useInspections'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 function StatCard({ label, value, to }: { label: string; value?: number; to: string }) {
