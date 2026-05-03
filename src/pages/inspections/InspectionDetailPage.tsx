@@ -22,21 +22,20 @@ export default function InspectionDetailPage() {
 
   const { data: inspection, isLoading, isError } = useInspection(id!)
   const { data: tenancies = [] } = useTenancies()
-  const updateInspection     = useUpdateInspection()
+  const updateInspection       = useUpdateInspection()
   const updateInspectionStatus = useUpdateInspectionStatus()
-  const deleteInspection     = useDeleteInspection()
-  const updateTenancyStatus  = useUpdateTenancyStatus()
+  const deleteInspection       = useDeleteInspection()
+  const updateTenancyStatus    = useUpdateTenancyStatus()
 
   const { register, handleSubmit } = useForm<{ notes: string; report: string }>()
 
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>
-  if (isError || !inspection) return <p className="text-destructive">Inspection not found.</p>
+  if (isLoading) return <p className="text-muted-foreground text-sm">Loading…</p>
+  if (isError || !inspection) return <p className="text-destructive text-sm">Inspection not found.</p>
 
-  const canEditNotes   = user?.role === 'Admin' || (user?.role === 'Inspector' && user.id === inspection.inspectorId)
+  const canEditNotes    = user?.role === 'Admin' || (user?.role === 'Inspector' && user.id === inspection.inspectorId)
   const canChangeStatus = canEditNotes
-  const canDelete      = user?.role === 'Admin'
+  const canDelete       = user?.role === 'Admin'
 
-  // Tenant: can accept/reject after inspection is COMPLETED
   const isTenantRequester = user?.role === 'Tenant' && user.id === inspection.requestedById
   const activeTenancy = tenancies.find(
     t => t.propertyId === inspection.propertyId && t.status === 'ACTIVE'
@@ -66,30 +65,28 @@ export default function InspectionDetailPage() {
 
   return (
     <div className="max-w-xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-semibold">Inspection</h1>
         <StatusBadge status={inspection.status} />
       </div>
 
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="text-base">Details</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 text-sm">
+      {/* Details */}
+      <Card className="mb-3">
+        <CardContent className="pt-4 grid grid-cols-2 gap-3 text-sm">
           <div className="col-span-2">
-            <p className="text-muted-foreground">Property</p>
+            <p className="text-xs text-muted-foreground">Property</p>
             <p className="font-medium"><PropertyTitle id={inspection.propertyId} /></p>
           </div>
           <div>
-            <p className="text-muted-foreground">Scheduled</p>
+            <p className="text-xs text-muted-foreground">Scheduled</p>
             <p className="font-medium">{new Date(inspection.scheduledAt).toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Inspector</p>
+            <p className="text-xs text-muted-foreground">Inspector</p>
             <p className="font-medium"><UserName id={inspection.inspectorId} /></p>
           </div>
           <div>
-            <p className="text-muted-foreground">Requested by</p>
+            <p className="text-xs text-muted-foreground">Requested by</p>
             <p className="font-medium"><UserName id={inspection.requestedById} /></p>
           </div>
         </CardContent>
@@ -97,18 +94,18 @@ export default function InspectionDetailPage() {
 
       {/* Inspector / Admin: write notes and report */}
       {canEditNotes && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-base">Notes & Report</CardTitle>
+        <Card className="mb-3">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Notes & Report</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSaveNotes)} className="space-y-3">
-              <div className="space-y-1">
-                <Label>Notes</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Notes</Label>
                 <Textarea {...register('notes')} defaultValue={inspection.notes ?? ''} rows={3} placeholder="Inspection notes…" />
               </div>
-              <div className="space-y-1">
-                <Label>Report</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Report</Label>
                 <Textarea {...register('report')} defaultValue={inspection.report ?? ''} rows={5} placeholder="Final inspection report…" />
               </div>
               <Button type="submit" size="sm" disabled={updateInspection.isPending}>
@@ -119,22 +116,22 @@ export default function InspectionDetailPage() {
         </Card>
       )}
 
-      {/* Read-only notes/report for other roles */}
+      {/* Read-only notes/report */}
       {!canEditNotes && (inspection.notes || inspection.report) && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-base">Inspection Report</CardTitle>
+        <Card className="mb-3">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Inspection Report</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {inspection.notes && (
               <div>
-                <p className="text-muted-foreground mb-1">Notes</p>
+                <p className="text-xs text-muted-foreground mb-1">Notes</p>
                 <p className="whitespace-pre-wrap">{inspection.notes}</p>
               </div>
             )}
             {inspection.report && (
               <div>
-                <p className="text-muted-foreground mb-1">Report</p>
+                <p className="text-xs text-muted-foreground mb-1">Report</p>
                 <p className="whitespace-pre-wrap">{inspection.report}</p>
               </div>
             )}
@@ -142,21 +139,21 @@ export default function InspectionDetailPage() {
         </Card>
       )}
 
-      {/* Tenant: accept or walk away after inspection is COMPLETED */}
+      {/* Tenant: accept or walk away */}
       {canDecide && (
-        <Card className="mb-4 border-primary">
-          <CardHeader>
-            <CardTitle className="text-base">Your decision</CardTitle>
+        <Card className="mb-3 border-primary">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Your decision</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-3">
-              The inspection is complete. Review the report above and decide whether to proceed with this rental.
+              The inspection is complete. Review the report above and decide whether to proceed.
             </p>
-            <div className="flex gap-3">
-              <Button onClick={acceptDeal} disabled={updateTenancyStatus.isPending}>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={acceptDeal} disabled={updateTenancyStatus.isPending}>
                 Accept deal
               </Button>
-              <Button variant="outline" onClick={walkAway} disabled={updateTenancyStatus.isPending}>
+              <Button size="sm" variant="outline" onClick={walkAway} disabled={updateTenancyStatus.isPending}>
                 Walk away
               </Button>
             </div>
@@ -165,7 +162,7 @@ export default function InspectionDetailPage() {
       )}
 
       {isTenantRequester && inspection.status === 'COMPLETED' && !activeTenancy && (
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-sm text-muted-foreground mb-3">
           This inspection is complete but your tenancy is no longer active.
         </p>
       )}
@@ -173,8 +170,8 @@ export default function InspectionDetailPage() {
       {/* Inspector / Admin: status control */}
       {(canChangeStatus || canDelete) && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Manage</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Manage</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {canChangeStatus && (
@@ -183,14 +180,14 @@ export default function InspectionDetailPage() {
                   value={inspection.status}
                   onValueChange={(v) => updateInspectionStatus.mutate({ id: inspection.id, status: v })}
                 >
-                  <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {STATUS_OPTIONS.map(s => (
                       <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-muted-foreground">Change status</span>
+                <span className="text-xs text-muted-foreground">Change status</span>
               </div>
             )}
             {canDelete && (

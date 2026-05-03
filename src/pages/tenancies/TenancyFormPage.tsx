@@ -49,18 +49,21 @@ export default function TenancyFormPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-2xl font-semibold mb-2">Place a Rental Bid</h1>
-      <p className="text-muted-foreground text-sm mb-6">
-        Select a property and submit your bid. The landlord will review all bids and approve one.
-      </p>
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold">Place a Rental Bid</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Submit your offer. The landlord will review all bids and approve one.
+        </p>
+      </div>
+
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-base">Bid details</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Property</Label>
               <Select value={propertyId} onValueChange={handlePropertyChange}>
                 <SelectTrigger>
@@ -79,45 +82,43 @@ export default function TenancyFormPage() {
 
             {selectedProperty && (
               <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-1">
-                <p className="text-muted-foreground">Address</p>
+                <p className="text-xs text-muted-foreground">Address</p>
                 <p className="font-medium">{selectedProperty.address}, {selectedProperty.city}</p>
-                <p className="text-muted-foreground mt-1">Listed price</p>
-                <p className="font-medium">${selectedProperty.pricePerMonth.toLocaleString()} / month</p>
+                <p className="text-xs text-muted-foreground mt-1.5">Listed price</p>
+                <p className="font-semibold">${selectedProperty.pricePerMonth.toLocaleString()} / month</p>
               </div>
             )}
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Your bid ($ / month)</Label>
               <Input type="number" {...register('monthlyRent')} placeholder="Enter your offer" />
-              <p className="text-xs text-muted-foreground">
-                You may bid lower or higher than the listed price.
-              </p>
+              <p className="text-xs text-muted-foreground">You may bid lower or higher than the listed price.</p>
               {errors.monthlyRent && <p className="text-sm text-destructive">{errors.monthlyRent.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label>Start date</Label>
                 <Input type="date" {...register('startDate')} />
                 {errors.startDate && <p className="text-xs text-destructive">{errors.startDate.message}</p>}
               </div>
-              <div className="space-y-1">
-                <Label>End date <span className="text-muted-foreground">(optional)</span></Label>
+              <div className="space-y-1.5">
+                <Label>End date <span className="text-muted-foreground text-xs">(optional)</span></Label>
                 <Input type="date" {...register('endDate')} />
               </div>
             </div>
 
             <p className="text-xs text-muted-foreground">
               Your bid will appear as <strong>PENDING</strong> until the landlord responds.
-              If approved, an inspection will be scheduled before the deal is finalised.
             </p>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <Button type="submit" disabled={createTenancy.isPending}>
                 {createTenancy.isPending ? 'Submitting…' : 'Submit bid'}
               </Button>
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
             </div>
+
             {createTenancy.isError && (
               <p className="text-sm text-destructive">Failed to submit bid. Please try again.</p>
             )}
